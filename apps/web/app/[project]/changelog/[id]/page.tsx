@@ -7,6 +7,7 @@ import { cn } from '@ui/lib/utils';
 import { fontMono } from '@ui/styles/fonts';
 import { Avatar, AvatarFallback, AvatarImage } from 'ui/components/ui/avatar';
 import { getPublicProjectChangelogs } from '@/lib/api/public';
+import { getChangelogImage } from '@/lib/changelog-image.mjs';
 import { formatRootUrl } from '@/lib/utils';
 import AnalyticsWrapper from '@/components/hub/analytics-wrapper';
 import { Icons } from '@/components/shared/icons/icons-static';
@@ -32,19 +33,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     notFound();
   }
 
+  const changelogImage = getChangelogImage(changelog.image);
+
   return {
     title: changelog.title,
     description: changelog.summary,
-    openGraph: {
-      images: [
-        {
-          url: changelog.image || '',
-          width: 1200,
-          height: 600,
-          alt: changelog.title,
-        },
-      ],
-    },
+    openGraph: changelogImage
+      ? {
+          images: [
+            {
+              url: changelogImage,
+              width: 1200,
+              height: 600,
+              alt: changelog.title,
+            },
+          ],
+        }
+      : undefined,
   };
 }
 
@@ -71,6 +76,8 @@ export default async function ChangelogPage({ params }: Props) {
   if (!changelog) {
     notFound();
   }
+
+  const changelogImage = getChangelogImage(changelog.image);
 
   return (
     <AnalyticsWrapper projectSlug={params.project} changelogId={changelog.id}>
@@ -105,13 +112,15 @@ export default async function ChangelogPage({ params }: Props) {
           <h1 className='cursor-default pb-6 text-3xl font-medium'>{changelog.title}</h1>
 
           {/* Image */}
-          <Image
-            src={changelog.image || ''}
-            alt='Thumbnail'
-            width={1200}
-            height={600}
-            className='rounded-lg border object-cover object-center'
-          />
+          {changelogImage !== null && (
+            <Image
+              src={changelogImage}
+              alt='Thumbnail'
+              width={1200}
+              height={600}
+              className='rounded-lg border object-cover object-center'
+            />
+          )}
 
           {/* Author & Share */}
           <div className='flex w-full flex-row items-center justify-between pb-6 pt-4'>

@@ -6,6 +6,7 @@ import { fontMono } from '@ui/styles/fonts';
 import { Separator } from 'ui/components/ui/separator';
 import { getProjectBySlug, getProjectConfigBySlug } from '@/lib/api/projects';
 import { getPublicProjectChangelogs } from '@/lib/api/public';
+import { getChangelogImage } from '@/lib/changelog-image.mjs';
 import AnalyticsWrapper from '@/components/hub/analytics-wrapper';
 import SubscribeToEmailUpdates from '@/components/hub/modals/subscribe-email-modal';
 
@@ -125,6 +126,8 @@ export default async function Changelogs({ params }: Props) {
       {/* Changelogs */}
       <div className='flex flex-col'>
         {changelogs.map((changelog, i: number) => {
+          const changelogImage = getChangelogImage(changelog.image);
+
           return (
             <>
               {/* // Row Splitting up date and Content  */}
@@ -154,15 +157,17 @@ export default async function Changelogs({ params }: Props) {
                 {/* Content */}
                 <div className='flex w-full flex-col pb-16'>
                   {/* Image */}
-                  <Link href={`/changelog/${changelog.slug}`}>
-                    <Image
-                      src={changelog.image || ''}
-                      alt='Thumbnail'
-                      width={1200}
-                      height={600}
-                      className='rounded-lg border object-cover object-center'
-                    />
-                  </Link>
+                  {changelogImage !== null && (
+                    <Link href={`/changelog/${changelog.slug}`}>
+                      <Image
+                        src={changelogImage}
+                        alt='Thumbnail'
+                        width={1200}
+                        height={600}
+                        className='rounded-lg border object-cover object-center'
+                      />
+                    </Link>
+                  )}
 
                   {/* Title */}
                   <div className='pb-4 pt-8'>

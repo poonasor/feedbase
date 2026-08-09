@@ -14,6 +14,7 @@ import {
   Section,
   Tailwind,
 } from '@react-email/components';
+import { getChangelogImage } from '@/lib/changelog-image.mjs';
 import { formatRootUrl } from '@/lib/utils';
 
 interface ChangelogEmailProps {
@@ -34,6 +35,8 @@ interface ChangelogEmailProps {
 }
 
 export default function ChangelogEmail({ subId, projectSlug, changelog }: ChangelogEmailProps) {
+  const changelogImage = getChangelogImage(changelog.image);
+
   return (
     <Html>
       <Preview>{changelog.summary}</Preview>
@@ -45,11 +48,13 @@ export default function ChangelogEmail({ subId, projectSlug, changelog }: Change
             <Heading className='cursor-default text-3xl font-medium text-black'>{changelog.title}</Heading>
 
             {/* Image */}
-            <Img
-              src={changelog.image || ''}
-              alt='Thumbnail'
-              className='aspect-auto w-full rounded-lg object-cover object-center'
-            />
+            {changelogImage !== null && (
+              <Img
+                src={changelogImage}
+                alt='Thumbnail'
+                className='aspect-auto w-full rounded-lg object-cover object-center'
+              />
+            )}
 
             {/* Author & Share */}
             <Section className='pb-6 pt-4'>
