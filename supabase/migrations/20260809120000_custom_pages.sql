@@ -38,6 +38,10 @@ security invoker
 set search_path = ''
 as $$
 begin
+  if new.project_id <> old.project_id then
+    raise exception 'custom_pages.project_id is immutable';
+  end if;
+
   new.updated_at = now();
   return new;
 end;
@@ -46,6 +50,26 @@ $$;
 create trigger "set_custom_pages_updated_at"
 before update on "public"."custom_pages"
 for each row execute function "public"."set_custom_pages_updated_at"();
+
+create or replace function "public"."is_allowed_project_api_token"(
+  api_token text,
+  target_project_id uuid,
+  allowed_permissions "public"."token_type"[]
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from "public"."project_api_keys"
+    where "project_api_keys"."token" = api_token
+      and "project_api_keys"."project_id" = target_project_id
+      and "project_api_keys"."permission" = any(allowed_permissions)
+  );
+$$;
 
 alter table "public"."custom_pages" enable row level security;
 
@@ -115,7 +139,27 @@ using (
   )
 );
 
-grant select on table "public"."custom_pages" to anon;
+create policy "Full-access project API keys can manage custom pages"
+on "public"."custom_pages"
+for all
+to anon
+using (
+  "public"."is_allowed_project_api_token"(
+    ((current_setting('request.headers'::text, true))::json ->> 'lumkey'::text),
+    project_id,
+    '{full_access}'::"public"."token_type"[]
+  )
+)
+with check (
+  "public"."is_allowed_project_api_token"(
+    ((current_setting('request.headers'::text, true))::json ->> 'lumkey'::text),
+    project_id,
+    '{full_access}'::"public"."token_type"[]
+  )
+);
+
+grant select, insert, update, delete on table "public"."custom_pages" to anon;
 grant select, insert, update, delete on table "public"."custom_pages" to authenticated;
 grant all on table "public"."custom_pages" to service_role;
 grant execute on function "public"."set_custom_pages_updated_at"() to service_role;
+grant execute on function "public"."is_allowed_project_api_token"(text, uuid, "public"."token_type"[]) to anon, authenticated, service_role;
