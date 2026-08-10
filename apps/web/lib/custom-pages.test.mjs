@@ -3,8 +3,11 @@ import test from 'node:test';
 
 import {
   CUSTOM_PAGE_LIMITS,
+  isValidCustomPageId,
+  mapCustomPageDatabaseError,
   normalizeCustomPageSlug,
   sanitizeCustomPageHtml,
+  validateCustomPageApiInput,
   validateCustomPageInput,
 } from './custom-pages.mjs';
 
@@ -99,4 +102,86 @@ test('sanitizes scripts, event handlers, dangerous URLs, and styles while preser
   assert.match(clean, /href="https:\/\/example.com"/);
   assert.match(clean, /rel="noopener noreferrer"/);
   assert.doesNotMatch(clean, /script|onclick|onerror|javascript:|style=|<img/i);
+});
+
+test('validates canonical UUID page ids', () => {
+  assert.equal(isValidCustomPageId('550e8400-e29b-41d4-a716-446655440000'), true);
+  assert.equal(isValidCustomPageId('not-a-uuid'), false);
+  assert.equal(isValidCustomPageId('550e8400e29b41d4a716446655440000'), false);
+});
+
+test('rejects non-object and server-managed API fields', () => {
+  for (const input of [null, [], 'invalid']) {
+    const result = validateCustomPageApiInput(input);
+    assert.equal(result.success, false);
+    assert.ok(result.errors.body);
+  }
+
+  for (const field of ['id', 'project_id', 'created_at', 'updated_at']) {
+    const result = validateCustomPageApiInput({ title: 'Title', slug: 'valid', content: '', [field]: 'x' });
+    assert.equal(result.success, false);
+    assert.ok(result.errors[field]);
+  }
+});
+
+test('validates merged PATCH input while preserving false, zero, and null values', () => {
+  const current = {
+    title: 'Current',
+    slug: 'current',
+    content: '<p>Current</p>',
+    seo_title: 'SEO',
+    seo_description: 'Description',
+    published: true,
+    show_in_header: true,
+    show_in_footer: true,
+    sort_order: 12,
+  };
+  const result = validateCustomPageApiInput(
+    {
+      seo_title: '',
+      seo_description: null,
+      published: false,
+      show_in_header: false,
+      show_in_footer: false,
+      sort_order: 0,
+    },
+    current
+  );
+
+  assert.equal(result.success, true);
+  assert.deepEqual(result.data, {
+    ...current,
+    seo_title: null,
+    seo_description: null,
+    published: false,
+    show_in_header: false,
+    show_in_footer: false,
+    sort_order: 0,
+  });
+});
+
+test('maps only the custom page slug constraint to conflict', () => {
+  assert.deepEqual(
+    mapCustomPageDatabaseError({
+      code: '23505',
+      constraint: 'custom_pages_project_id_slug_key',
+      message: 'duplicate key value violates unique constraint',
+    }),
+    {
+      message: 'A custom page with this slug already exists.',
+      status: 409,
+    }
+  );
+});
+
+test('maps unrelated database errors to a generic server error', () => {
+  for (const error of [
+    { code: '23505', constraint: 'some_other_unique_key', message: 'duplicate key value' },
+    { code: 'XX000', message: 'raw postgres details' },
+  ]) {
+    assert.deepEqual(mapCustomPageDatabaseError(error), {
+      message: 'Unable to process the custom page request.',
+      status: 500,
+    });
+  }
 });

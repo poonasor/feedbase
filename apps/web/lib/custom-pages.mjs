@@ -29,6 +29,23 @@ export const RESERVED_CUSTOM_PAGE_SLUGS = new Set([
 
 const SAFE_SLUG_INPUT = /^[a-zA-Z0-9 _-]+$/;
 const SAFE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const CUSTOM_PAGE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CUSTOM_PAGE_INPUT_FIELDS = new Set([
+  'title',
+  'slug',
+  'content',
+  'seo_title',
+  'seo_description',
+  'published',
+  'show_in_header',
+  'show_in_footer',
+  'sort_order',
+]);
+const CUSTOM_PAGE_SERVER_FIELDS = new Set(['id', 'project_id', 'created_at', 'updated_at']);
+
+export function isValidCustomPageId(value) {
+  return typeof value === 'string' && CUSTOM_PAGE_ID.test(value);
+}
 
 export function normalizeCustomPageSlug(value) {
   if (typeof value !== 'string') return '';
@@ -138,4 +155,43 @@ export function validateCustomPageInput(input) {
       sort_order: sortOrder,
     },
   };
+}
+
+export function validateCustomPageApiInput(input, current) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return { success: false, errors: { body: 'Request body must be a JSON object.' } };
+  }
+
+  const errors = {};
+  const patch = {};
+  for (const [field, value] of Object.entries(input)) {
+    if (CUSTOM_PAGE_SERVER_FIELDS.has(field)) {
+      errors[field] = `${field} is managed by the server.`;
+    } else if (!CUSTOM_PAGE_INPUT_FIELDS.has(field)) {
+      errors[field] = `${field} is not a supported custom page field.`;
+    } else {
+      patch[field] = value;
+    }
+  }
+
+  if (Object.keys(errors).length > 0) return { success: false, errors };
+  if (current && Object.keys(patch).length === 0) {
+    return { success: false, errors: { body: 'At least one custom page field is required.' } };
+  }
+
+  return validateCustomPageInput(current ? { ...current, ...patch } : patch);
+}
+
+export function mapCustomPageDatabaseError(error) {
+  if (
+    error &&
+    typeof error === 'object' &&
+    error.code === '23505' &&
+    (error.constraint === 'custom_pages_project_id_slug_key' ||
+      (typeof error.message === 'string' && error.message.includes('custom_pages_project_id_slug_key')))
+  ) {
+    return { message: 'A custom page with this slug already exists.', status: 409 };
+  }
+
+  return { message: 'Unable to process the custom page request.', status: 500 };
 }
