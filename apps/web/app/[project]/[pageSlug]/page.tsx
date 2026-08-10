@@ -1,17 +1,21 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublishedCustomPage } from '@/lib/api/custom-pages';
-import { sanitizeCustomPageHtml } from '@/lib/custom-pages.mjs';
+import { isCustomPageNotFoundError, sanitizeCustomPageHtml } from '@/lib/custom-pages.mjs';
 
 type Props = {
   params: { project: string; pageSlug: string };
 };
 
 async function getPageOrNotFound({ project, pageSlug }: Props['params']) {
-  const { data: page } = await getPublishedCustomPage(project, pageSlug, 'server');
+  const { data: page, error } = await getPublishedCustomPage(project, pageSlug, 'server');
 
-  if (!page) {
+  if (isCustomPageNotFoundError(error)) {
     notFound();
+  }
+
+  if (error || !page) {
+    throw new Error(error?.message || 'Unable to load the custom page.');
   }
 
   return page;

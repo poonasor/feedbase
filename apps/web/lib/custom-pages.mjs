@@ -43,6 +43,17 @@ const CUSTOM_PAGE_INPUT_FIELDS = new Set([
 ]);
 const CUSTOM_PAGE_SERVER_FIELDS = new Set(['id', 'project_id', 'created_at', 'updated_at']);
 
+export function buildCustomDomainRedirectPath(pathname, search) {
+  const normalizedPath = typeof pathname === 'string' ? pathname.replace(/\\/g, '/') : '';
+  const safePath = `/${normalizedPath.replace(/^\/+/, '')}`;
+  const query = typeof search === 'string' && search.length > 0 ? `?${search.replace(/^\?+/, '')}` : '';
+  return `${safePath}${query}`;
+}
+
+export function isCustomPageNotFoundError(error) {
+  return Boolean(error && typeof error === 'object' && error.status === 404);
+}
+
 export function getCustomPageStatusLabel(published) {
   return published ? 'Published' : 'Draft';
 }

@@ -104,6 +104,7 @@ export default async function middleware(req: NextRequest) {
       {
         headers: {
           'x-pathname': path,
+          'x-search': url.search,
           'x-project': data?.project?.slug,
           'x-powered-by': 'Feedbase',
         },
@@ -162,6 +163,7 @@ export default async function middleware(req: NextRequest) {
     {
       headers: {
         'x-pathname': path,
+        'x-search': url.search,
         'x-project': hostname.split('.')[0],
         'x-powered-by': 'Feedbase',
       },

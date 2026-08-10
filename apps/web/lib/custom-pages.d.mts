@@ -32,6 +32,8 @@ export const CUSTOM_PAGE_LIMITS: Readonly<{
   sortOrderMax: number;
 }>;
 export const RESERVED_CUSTOM_PAGE_SLUGS: ReadonlySet<string>;
+export function buildCustomDomainRedirectPath(pathname: string | null, search: string | null): string;
+export function isCustomPageNotFoundError(error: unknown): boolean;
 export function getCustomPageStatusLabel(published: boolean): 'Published' | 'Draft';
 export function getCustomPageNavigationLabel(
   showInHeader: boolean,

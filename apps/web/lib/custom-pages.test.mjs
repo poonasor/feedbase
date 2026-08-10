@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildCustomDomainRedirectPath,
   CUSTOM_PAGE_LIMITS,
   getCustomPageNavigationLabel,
   getCustomPageStatusLabel,
   isValidCustomPageId,
+  isCustomPageNotFoundError,
   mapCustomPageDatabaseError,
   normalizeCustomPageSlug,
   sanitizeCustomPageHtml,
@@ -13,6 +15,20 @@ import {
   validateCustomPageApiInput,
   validateCustomPageInput,
 } from './custom-pages.mjs';
+
+test('builds same-host custom-domain redirect paths and preserves query parameters', () => {
+  assert.equal(buildCustomDomainRedirectPath('/privacy', '?source=footer'), '/privacy?source=footer');
+  assert.equal(buildCustomDomainRedirectPath('//evil.example/path', '?source=footer'), '/evil.example/path?source=footer');
+  assert.equal(buildCustomDomainRedirectPath('/\\evil.example/path', null), '/evil.example/path');
+  assert.equal(buildCustomDomainRedirectPath('terms', 'source=header'), '/terms?source=header');
+  assert.equal(buildCustomDomainRedirectPath(null, null), '/');
+});
+
+test('distinguishes genuine custom-page not-found errors from database failures', () => {
+  assert.equal(isCustomPageNotFoundError({ status: 404, message: 'Custom page not found.' }), true);
+  assert.equal(isCustomPageNotFoundError({ status: 500, message: 'Unable to process the custom page request.' }), false);
+  assert.equal(isCustomPageNotFoundError(null), false);
+});
 
 test('formats custom page status and navigation placement labels', () => {
   assert.equal(getCustomPageStatusLabel(true), 'Published');
