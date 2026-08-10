@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { PostgrestError } from '@supabase/supabase-js';
+import { createRewriteOptions } from '@/lib/hub-routing.mjs';
 
 export const config = {
   matcher: [
@@ -101,13 +102,15 @@ export default async function middleware(req: NextRequest) {
         }`,
         req.url
       ),
-      {
-        headers: {
+      createRewriteOptions(
+        req.headers,
+        {
           'x-pathname': path,
+          'x-search': url.search,
           'x-project': data?.project?.slug,
-          'x-powered-by': 'Feedbase',
         },
-      }
+        { 'x-powered-by': 'Feedbase' }
+      )
     );
   }
 
@@ -123,32 +126,35 @@ export default async function middleware(req: NextRequest) {
     }
 
     // rewrite / to /dash
-    return NextResponse.rewrite(new URL(`/dash${path === '/' ? '' : path}`, req.url), {
-      headers: {
+    return NextResponse.rewrite(
+      new URL(`/dash${path === '/' ? '' : path}`, req.url),
+      createRewriteOptions(req.headers, {
         'x-pathname': path,
         'x-project': path.split('/')[1],
-      },
-    });
+      })
+    );
   }
 
   // rewrite root application to `/home` folder
   if (hostname === 'localhost:3000' || hostname === process.env.NEXT_PUBLIC_ROOT_DOMAIN) {
-    return NextResponse.rewrite(new URL(`/home${path === '/' ? '' : path}`, req.url), {
-      headers: {
+    return NextResponse.rewrite(
+      new URL(`/home${path === '/' ? '' : path}`, req.url),
+      createRewriteOptions(req.headers, {
         'x-pathname': path,
         'x-project': path.split('/')[1],
-      },
-    });
+      })
+    );
   }
 
   // rewrite /api to `/api` folder
   if (hostname === `api.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`) {
-    return NextResponse.rewrite(new URL(`/api${path}`, req.url), {
-      headers: {
+    return NextResponse.rewrite(
+      new URL(`/api${path}`, req.url),
+      createRewriteOptions(req.headers, {
         'x-pathname': path,
         'x-project': path.split('/')[1],
-      },
-    });
+      })
+    );
   }
 
   // rewrite everything else to `/[sub-domain]/[path] dynamic route
@@ -159,12 +165,14 @@ export default async function middleware(req: NextRequest) {
       }`,
       req.url
     ),
-    {
-      headers: {
+    createRewriteOptions(
+      req.headers,
+      {
         'x-pathname': path,
+        'x-search': url.search,
         'x-project': hostname.split('.')[0],
-        'x-powered-by': 'Feedbase',
       },
-    }
+      { 'x-powered-by': 'Feedbase' }
+    )
   );
 }

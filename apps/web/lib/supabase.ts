@@ -83,6 +83,61 @@ export interface Database {
           },
         ];
       };
+      custom_pages: {
+        Row: {
+          content: string;
+          created_at: string;
+          id: string;
+          project_id: string;
+          published: boolean;
+          seo_description: string | null;
+          seo_title: string | null;
+          show_in_footer: boolean;
+          show_in_header: boolean;
+          slug: string;
+          sort_order: number;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          content?: string;
+          created_at?: string;
+          id?: string;
+          project_id: string;
+          published?: boolean;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          show_in_footer?: boolean;
+          show_in_header?: boolean;
+          slug: string;
+          sort_order?: number;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          id?: string;
+          project_id?: string;
+          published?: boolean;
+          seo_description?: string | null;
+          seo_title?: string | null;
+          show_in_footer?: boolean;
+          show_in_header?: boolean;
+          slug?: string;
+          sort_order?: number;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'custom_pages_project_id_fkey';
+            columns: ['project_id'];
+            referencedRelation: 'projects';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       feedback: {
         Row: {
           comment_count: number;
