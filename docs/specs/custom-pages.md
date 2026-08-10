@@ -54,7 +54,7 @@ A `custom_pages` Supabase table stores project-scoped page records. Authenticate
 
 - `GET /api/v1/projects/:slug/pages` — member-only list, including drafts.
 - `POST /api/v1/projects/:slug/pages` — member-only create.
-- `PUT /api/v1/projects/:slug/pages/:id` — member-only update scoped to project.
+- `PATCH /api/v1/projects/:slug/pages/:id` — member-only partial update scoped to project.
 - `DELETE /api/v1/projects/:slug/pages/:id` — member-only delete scoped to project.
 
 ### UI/UX Design

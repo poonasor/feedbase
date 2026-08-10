@@ -21,12 +21,13 @@ test('rejects cross-origin, malformed, null, and missing browser origins', () =>
     { origin: 'null' },
     { origin: 'not a url' },
     { referer: 'https://evil.example/attack' },
+    { lumkey: 'not-an-external-auth-header' },
     {},
   ]) {
     assert.equal(isTrustedMutationRequest(request(headers)), false);
   }
 });
 
-test('allows authorization-header API clients to rely on API-key authentication', () => {
+test('allows the public Authorization-header API contract to rely on API-key authentication', () => {
   assert.equal(isTrustedMutationRequest(request({ authorization: 'Bearer project-api-key' })), true);
 });
