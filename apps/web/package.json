@@ -30,7 +30,7 @@
     "@react-email/components": "0.0.14",
     "@react-email/tailwind": "0.0.13-canary.1",
     "@supabase/ssr": "^0.0.10",
-    "@supabase/supabase-js": "2.39.7",
+    "@supabase/supabase-js": "latest",
     "@tailwindcss/typography": "^0.5.10",
     "@tiptap/extension-character-count": "^2.1.12",
     "@tiptap/extension-highlight": "^2.1.11",
