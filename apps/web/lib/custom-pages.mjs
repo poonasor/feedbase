@@ -43,6 +43,17 @@ const CUSTOM_PAGE_INPUT_FIELDS = new Set([
 ]);
 const CUSTOM_PAGE_SERVER_FIELDS = new Set(['id', 'project_id', 'created_at', 'updated_at']);
 
+export function getCustomPageStatusLabel(published) {
+  return published ? 'Published' : 'Draft';
+}
+
+export function getCustomPageNavigationLabel(showInHeader, showInFooter) {
+  if (showInHeader && showInFooter) return 'Header & Footer';
+  if (showInHeader) return 'Header';
+  if (showInFooter) return 'Footer';
+  return 'Not in navigation';
+}
+
 export function isValidCustomPageId(value) {
   return typeof value === 'string' && CUSTOM_PAGE_ID.test(value);
 }
@@ -180,6 +191,18 @@ export function validateCustomPageApiInput(input, current) {
   }
 
   return validateCustomPageInput(current ? { ...current, ...patch } : patch);
+}
+
+export function selectCustomPagePatch(input, validated) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+
+  const patch = {};
+  for (const field of Object.keys(input)) {
+    if (CUSTOM_PAGE_INPUT_FIELDS.has(field)) {
+      patch[field] = validated[field];
+    }
+  }
+  return patch;
 }
 
 export function mapCustomPageDatabaseError(error) {

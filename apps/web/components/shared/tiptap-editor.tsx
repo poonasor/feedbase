@@ -1,7 +1,6 @@
 'use client';
 
 import './placeholder.css';
-import React from 'react';
 import { CharacterCount } from '@tiptap/extension-character-count';
 import { Highlight } from '@tiptap/extension-highlight';
 import { Link } from '@tiptap/extension-link';
@@ -18,13 +17,15 @@ export default function RichTextEditor({
   className,
   characterLimit,
   proseInvert,
+  ariaLabel,
 }: {
   content: string;
-  setContent: React.Dispatch<React.SetStateAction<string>>;
+  setContent: (content: string) => void;
   placeholder?: string;
   className?: string;
   characterLimit?: number;
   proseInvert?: boolean;
+  ariaLabel?: string;
 }) {
   const editor = useEditor({
     extensions: [
@@ -46,6 +47,7 @@ export default function RichTextEditor({
     content,
     editorProps: {
       attributes: {
+        'aria-label': ariaLabel || placeholder || 'Rich text editor',
         class: `prose prose-sm dark:prose-invert focus:outline-none${proseInvert ? ' prose-invert' : ''}`,
       },
     },

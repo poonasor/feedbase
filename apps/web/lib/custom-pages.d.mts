@@ -32,6 +32,11 @@ export const CUSTOM_PAGE_LIMITS: Readonly<{
   sortOrderMax: number;
 }>;
 export const RESERVED_CUSTOM_PAGE_SLUGS: ReadonlySet<string>;
+export function getCustomPageStatusLabel(published: boolean): 'Published' | 'Draft';
+export function getCustomPageNavigationLabel(
+  showInHeader: boolean,
+  showInFooter: boolean
+): 'Header & Footer' | 'Header' | 'Footer' | 'Not in navigation';
 export function normalizeCustomPageSlug(value: unknown): string;
 export function isValidCustomPageId(value: unknown): boolean;
 export function sanitizeCustomPageHtml(value: unknown): string;
@@ -46,4 +51,8 @@ export function validateCustomPageApiInput(
 ):
   | { success: true; data: ValidatedCustomPageInput }
   | { success: false; errors: Record<string, string>; data?: never };
+export function selectCustomPagePatch(
+  input: unknown,
+  validated: ValidatedCustomPageInput
+): Partial<ValidatedCustomPageInput>;
 export function mapCustomPageDatabaseError(error: unknown): { message: string; status: number };

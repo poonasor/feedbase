@@ -3,13 +3,25 @@ import test from 'node:test';
 
 import {
   CUSTOM_PAGE_LIMITS,
+  getCustomPageNavigationLabel,
+  getCustomPageStatusLabel,
   isValidCustomPageId,
   mapCustomPageDatabaseError,
   normalizeCustomPageSlug,
   sanitizeCustomPageHtml,
+  selectCustomPagePatch,
   validateCustomPageApiInput,
   validateCustomPageInput,
 } from './custom-pages.mjs';
+
+test('formats custom page status and navigation placement labels', () => {
+  assert.equal(getCustomPageStatusLabel(true), 'Published');
+  assert.equal(getCustomPageStatusLabel(false), 'Draft');
+  assert.equal(getCustomPageNavigationLabel(true, true), 'Header & Footer');
+  assert.equal(getCustomPageNavigationLabel(true, false), 'Header');
+  assert.equal(getCustomPageNavigationLabel(false, true), 'Footer');
+  assert.equal(getCustomPageNavigationLabel(false, false), 'Not in navigation');
+});
 
 test('normalizes page slugs to lowercase hyphenated values', () => {
   assert.equal(normalizeCustomPageSlug('  Privacy Policy  '), 'privacy-policy');
@@ -156,6 +168,26 @@ test('validates merged PATCH input while preserving false, zero, and null values
     published: false,
     show_in_header: false,
     show_in_footer: false,
+    sort_order: 0,
+  });
+});
+
+test('selects only sanitized fields present in a PATCH request', () => {
+  const validated = {
+    title: 'Current title',
+    slug: 'current',
+    content: '<p>Current</p>',
+    seo_title: null,
+    seo_description: 'Description',
+    published: false,
+    show_in_header: true,
+    show_in_footer: true,
+    sort_order: 0,
+  };
+
+  assert.deepEqual(selectCustomPagePatch({ seo_title: '', published: false, sort_order: 0 }, validated), {
+    seo_title: null,
+    published: false,
     sort_order: 0,
   });
 });

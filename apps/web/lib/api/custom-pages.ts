@@ -3,6 +3,7 @@ import {
   isValidCustomPageId,
   mapCustomPageDatabaseError,
   normalizeCustomPageSlug,
+  selectCustomPagePatch,
   validateCustomPageApiInput,
   type ValidatedCustomPageInput,
 } from '@/lib/custom-pages.mjs';
@@ -133,9 +134,10 @@ export const updateCustomPage = (
     const validation = validateCustomPageApiInput(input, editableFields(current));
     if (!validation.success) return { data: null, error: validationError(validation.errors) };
 
+    const updateData = selectCustomPagePatch(input, validation.data);
     const { data, error } = await supabase
       .from('custom_pages')
-      .update(validation.data)
+      .update(updateData)
       .eq('id', id)
       .eq('project_id', project!.id)
       .select()

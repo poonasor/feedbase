@@ -1,25 +1,34 @@
-import { getProjectBySlug, getProjectConfigBySlug } from '@/lib/api/projects';
 import HubConfigCards from '@/components/dashboard/settings/hub-cards';
+import CustomPagesManager from '@/components/dashboard/settings/custom-pages-manager';
+import { getAllCustomPages } from '@/lib/api/custom-pages';
+import { getProjectBySlug, getProjectConfigBySlug } from '@/lib/api/projects';
 
 export default async function HubSettings({ params }: { params: { slug: string } }) {
-  // Fetch project data
-  const { data: project, error } = await getProjectBySlug(params.slug, 'server');
+  const [projectResult, projectConfigResult, customPagesResult] = await Promise.all([
+    getProjectBySlug(params.slug, 'server'),
+    getProjectConfigBySlug(params.slug, 'server'),
+    getAllCustomPages(params.slug, 'server'),
+  ]);
 
-  if (error) {
-    return <div>{error.message}</div>;
+  if (projectResult.error) {
+    return <div>{projectResult.error.message}</div>;
   }
 
-  // Fetch project config
-  const { data: projectConfig, error: configError } = await getProjectConfigBySlug(params.slug, 'server');
+  if (projectConfigResult.error) {
+    return <div>{projectConfigResult.error.message}</div>;
+  }
 
-  if (configError) {
-    return <div>{configError.message}</div>;
+  if (customPagesResult.error) {
+    return <div>{customPagesResult.error.message}</div>;
   }
 
   return (
     <div className='flex h-full w-full flex-col space-y-6 overflow-y-auto'>
-      {/* Hub Card */}
-      <HubConfigCards projectData={project} projectConfigData={projectConfig} />
+      <HubConfigCards
+        projectData={projectResult.data}
+        projectConfigData={projectConfigResult.data}
+      />
+      <CustomPagesManager projectSlug={params.slug} pages={customPagesResult.data} />
     </div>
   );
 }
