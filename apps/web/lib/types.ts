@@ -44,6 +44,8 @@ export type ChangelogWithAuthorProps = Database['public']['Tables']['changelogs'
 
 export type ChangelogSubscriberProps = Database['public']['Tables']['changelog_subscribers'];
 
+export type CustomPageProps = Database['public']['Tables']['custom_pages'];
+
 export type FeedbackProps = Database['public']['Tables']['feedback'];
 
 export type FeedbackTagProps = Database['public']['Tables']['feedback_tags'];
