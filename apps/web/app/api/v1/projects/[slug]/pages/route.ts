@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createCustomPage, getAllCustomPages } from '@/lib/api/custom-pages';
+import { isTrustedMutationRequest } from '@/lib/csrf.mjs';
 
 export async function GET(_request: Request, context: { params: { slug: string } }) {
   const { data, error } = await getAllCustomPages(context.params.slug, 'route');
@@ -9,6 +10,10 @@ export async function GET(_request: Request, context: { params: { slug: string }
 }
 
 export async function POST(request: Request, context: { params: { slug: string } }) {
+  if (!isTrustedMutationRequest(request)) {
+    return NextResponse.json({ error: 'Cross-origin request rejected.' }, { status: 403 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

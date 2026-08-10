@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { deleteCustomPage, updateCustomPage } from '@/lib/api/custom-pages';
 import { isValidCustomPageId } from '@/lib/custom-pages.mjs';
+import { isTrustedMutationRequest } from '@/lib/csrf.mjs';
 
 export async function PATCH(
   request: Request,
   context: { params: { slug: string; id: string } }
 ) {
+  if (!isTrustedMutationRequest(request)) {
+    return NextResponse.json({ error: 'Cross-origin request rejected.' }, { status: 403 });
+  }
+
   if (!isValidCustomPageId(context.params.id)) {
     return NextResponse.json({ error: 'Invalid custom page id.' }, { status: 400 });
   }
@@ -29,9 +34,13 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: { slug: string; id: string } }
 ) {
+  if (!isTrustedMutationRequest(request)) {
+    return NextResponse.json({ error: 'Cross-origin request rejected.' }, { status: 403 });
+  }
+
   if (!isValidCustomPageId(context.params.id)) {
     return NextResponse.json({ error: 'Invalid custom page id.' }, { status: 400 });
   }
