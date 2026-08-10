@@ -2,8 +2,10 @@ import { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Separator } from 'ui/components/ui/separator';
+import { getPublishedCustomPageNavigation } from '@/lib/api/custom-pages';
 import { getProjectBySlug, getProjectConfigBySlug } from '@/lib/api/projects';
 import { getCurrentUser } from '@/lib/api/user';
+import Footer from '@/components/hub/footer';
 import Header from '@/components/hub/nav-bar';
 import CustomThemeWrapper from '@/components/hub/theme-wrapper';
 import { ThemeProvider as NextThemeProvider } from '@/components/theme-provider';
@@ -12,6 +14,22 @@ type Props = {
   children: React.ReactNode;
   params: { project: string };
 };
+
+type NavigationItem = {
+  name: string;
+  link: string;
+};
+
+const BUILT_IN_TABS = Object.freeze([
+  {
+    name: 'Feedback',
+    link: '/feedback',
+  },
+  {
+    name: 'Changelog',
+    link: '/changelog',
+  },
+]);
 
 // Metadata
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -40,24 +58,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const tabs = [
-  {
-    name: 'Feedback',
-    link: '/feedback',
-  },
-  {
-    name: 'Changelog',
-    link: '/changelog',
-  },
-];
-
 export default async function HubLayout({ children, params }: Props) {
   const headerList = headers();
   const pathname = headerList.get('x-pathname');
   const hostname = headerList.get('host');
-  const currentTab = tabs.find((tab) => tab.link === `/${pathname!.split('/')[1]}`);
 
-  if (!currentTab) {
+  // Only the public hub root redirects. Other paths must reach their child route.
+  if (pathname === '/') {
     redirect('/feedback');
   }
 
@@ -75,18 +82,31 @@ export default async function HubLayout({ children, params }: Props) {
     notFound();
   }
 
-  // Check if custom domain is set and redirect to it
+  // Check if custom domain is set and redirect to it without dropping the public path.
   if (config.custom_domain && config.custom_domain_verified && hostname !== config.custom_domain) {
-    redirect(`https://${config.custom_domain}`);
+    redirect(new URL(pathname || '/', `https://${config.custom_domain}`).toString());
   }
 
-  // Check if any modules are disabled and remove them from the tabs
-  if (!config.changelog_enabled) {
-    tabs.splice(1, 1);
-  }
+  const [{ data: customPageNavigation }, { data: user }] = await Promise.all([
+    getPublishedCustomPageNavigation(params.project, 'server'),
+    getCurrentUser('server'),
+  ]);
 
-  // Get current user
-  const { data: user } = await getCurrentUser('server');
+  const builtInTabs: NavigationItem[] = BUILT_IN_TABS.filter(
+    (tab) => tab.link !== '/changelog' || config.changelog_enabled
+  ).map((tab) => ({ ...tab }));
+  const headerTabs: NavigationItem[] = [
+    ...builtInTabs,
+    ...(customPageNavigation || [])
+      .filter((page) => page.show_in_header)
+      .map((page) => ({ name: page.title, link: `/${page.slug}` })),
+  ];
+  const footerLinks: NavigationItem[] = (customPageNavigation || [])
+    .filter((page) => page.show_in_footer)
+    .map((page) => ({ name: page.title, link: `/${page.slug}` }));
+  const currentTab = pathname
+    ? headerTabs.find((tab) => pathname === tab.link || pathname.startsWith(`${tab.link}/`))
+    : undefined;
 
   return (
     <CustomThemeWrapper projectConfig={config}>
@@ -95,10 +115,9 @@ export default async function HubLayout({ children, params }: Props) {
         defaultTheme={
           config.custom_theme === 'custom' ? undefined : config.custom_theme === 'light' ? 'light' : 'dark'
         }>
-        {/* Header */}
-        <div className='flex h-full w-full flex-col items-center pt-5'>
+        <div className='flex min-h-screen w-full flex-col items-center pt-5'>
           {/* Header */}
-          <Header tabs={tabs} intialTab={currentTab} project={project} user={user} config={config} />
+          <Header tabs={headerTabs} initialTab={currentTab} project={project} user={user} config={config} />
 
           {/* Separator with max screen width */}
           <Separator className='bg-border/60' />
@@ -107,21 +126,10 @@ export default async function HubLayout({ children, params }: Props) {
           <div className='flex h-full w-full flex-col items-start justify-start pt-10 lg:max-w-screen-xl'>
             {children}
           </div>
+
+          <Footer links={footerLinks} />
         </div>
       </NextThemeProvider>
-
-      {/* Powered by */}
-      {/* TODO: Improve */}
-      {/* <div className='flex h-full w-full flex-col items-center justify-center gap-4 p-5 pb-9'>
-      <Button
-            variant='secondary'
-            size='sm'
-            className={cn(
-              'text-foreground/80 font-light inline-flex items-center rounded-lg px-3 py-1 w-fit text-md hover:text-foreground',
-            )}>
-            Powered by Feedbase
-        </Button>
-      </div> */}
     </CustomThemeWrapper>
   );
 }

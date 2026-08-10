@@ -116,6 +116,20 @@ test('sanitizes scripts, event handlers, dangerous URLs, and styles while preser
   assert.doesNotMatch(clean, /script|onclick|onerror|javascript:|style=|<img/i);
 });
 
+test('rejects protocol-relative links', () => {
+  const clean = sanitizeCustomPageHtml('<a href="//evil.example/path">bad</a>');
+
+  assert.equal(clean, '<a>bad</a>');
+});
+
+test('sanitization is idempotent', () => {
+  const dirty =
+    '<h2 onclick="alert(1)">Heading</h2><a href="https://example.com" target="_blank">safe</a><img src=x>';
+  const clean = sanitizeCustomPageHtml(dirty);
+
+  assert.equal(sanitizeCustomPageHtml(clean), clean);
+});
+
 test('validates canonical UUID page ids', () => {
   assert.equal(isValidCustomPageId('550e8400-e29b-41d4-a716-446655440000'), true);
   assert.equal(isValidCustomPageId('not-a-uuid'), false);

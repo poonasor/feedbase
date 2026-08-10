@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@ui/components/ui/button';
@@ -18,27 +17,21 @@ interface TabProps {
 
 export default function Header({
   tabs,
-  intialTab,
+  initialTab,
   project,
   config,
   user,
 }: {
   tabs: TabProps[];
-  intialTab: TabProps;
+  initialTab?: TabProps;
   project: ProjectProps['Row'];
   config: ProjectConfigWithoutSecretProps;
   user: ProfileProps['Row'] | null;
 }) {
-  const [currentTab, setCurrentTab] = useState(intialTab);
   const pathname = usePathname();
-
-  // check for tab change
-  useEffect(() => {
-    const currentTab = tabs.find((tab) => tab.link === pathname);
-    if (currentTab) {
-      setCurrentTab(currentTab);
-    }
-  }, [pathname, tabs]);
+  const currentTab = pathname
+    ? tabs.find((tab) => pathname === tab.link || pathname.startsWith(`${tab.link}/`))
+    : initialTab;
 
   return (
     <div className='flex w-full flex-col items-center gap-4 px-5 sm:px-10 lg:max-w-screen-xl'>
@@ -96,25 +89,23 @@ export default function Header({
 
       {/* Navigation */}
       <div className='flex h-fit w-full flex-row items-center gap-4'>
-        {tabs.map((tab) => (
-          <Link
-            href={tab.link}
-            className={cn(
-              'pb-[6px] first:-ml-3',
-              tab.link === currentTab.link && 'border-foreground border-b-2'
-            )}
-            key={tab.name.toLowerCase()}>
-            <Button
-              variant='secondary'
-              size='sm'
-              className={cn(
-                'text-foreground/90 hover:bg-foreground/10 inline-flex items-center rounded-md px-3 py-1 text-base font-light transition-colors duration-150',
-                tab.link === currentTab.link && ''
-              )}>
-              {tab.name}
-            </Button>
-          </Link>
-        ))}
+        {tabs.map((tab) => {
+          const isActive = tab.link === currentTab?.link;
+
+          return (
+            <Link
+              href={tab.link}
+              className={cn('pb-[6px] first:-ml-3', isActive && 'border-foreground border-b-2')}
+              key={tab.link}>
+              <Button
+                variant='secondary'
+                size='sm'
+                className='text-foreground/90 hover:bg-foreground/10 inline-flex items-center rounded-md px-3 py-1 text-base font-light transition-colors duration-150'>
+                {tab.name}
+              </Button>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

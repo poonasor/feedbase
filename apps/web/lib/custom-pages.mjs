@@ -92,6 +92,7 @@ export function sanitizeCustomPageHtml(value) {
       a: ['href', 'target', 'rel'],
     },
     allowedSchemes: ['http', 'https', 'mailto'],
+    allowProtocolRelative: false,
     transformTags: {
       a: (_tagName, attribs) => ({
         tagName: 'a',
