@@ -21,9 +21,9 @@
     "build": "tsup"
   },
   "devDependencies": {
-    "@types/node": "^20.2.1",
-    "tsup": "^6.7.0",
-    "tsx": "^3.12.7",
-    "typescript": "^5.0.4"
+    "@types/node": "^20.19.43",
+    "tsup": "^8.5.1",
+    "tsx": "^3.14.0",
+    "typescript": "^5.9.3"
   }
 }

@@ -98,7 +98,7 @@ export const updateProjectBySlug = (slug: string, data: ProjectProps['Update'], 
 
       // Get current image path
       if (project![type]) {
-        const { data: currentImage } = supabase.storage.from('projects').getPublicUrl(project![type]!);
+        const { data: currentImage } = supabase.storage.from('projects').getPublicUrl(project![type]);
 
         // Get current image path (get last 3 segments of url)
         const currentImagePath = currentImage.publicUrl.split('/').slice(-3).join('/');

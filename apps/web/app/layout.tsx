@@ -3,7 +3,8 @@ import { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { cn } from '@ui/lib/utils';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { GeistSans } from 'geist/font';
+// eslint-disable-next-line import/named -- geist re-exports through "geist/font" module declarations the import resolver can't follow
+import { GeistSans } from 'geist/font/sans';
 import { Toaster } from 'sonner';
 import { formatRootUrl } from '@/lib/utils';
 

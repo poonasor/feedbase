@@ -1,7 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env"],
-  "globalDotEnv": [".env"],
   "globalEnv": [
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
@@ -9,6 +8,7 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "SUPABASE_SERVICE_ROLE_KEY",
     "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL",
     "VERCEL_TEAM_ID",
     "VERCEL_PROJECT_ID",
     "VERCEL_AUTH_TOKEN",
@@ -16,12 +16,14 @@
     "TINYBIRD_API_KEY",
     "VERCEL",
     "CUSTOM_DOMAIN_WHITELIST",
+    "SUBDOMAIN_HOSTING",
+    "DASHBOARD_SUBDOMAIN",
     "NODE_ENV"
   ],
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "dev": {
       "cache": false,

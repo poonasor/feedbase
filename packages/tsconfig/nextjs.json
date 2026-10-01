@@ -13,7 +13,7 @@
     "module": "esnext",
     "noEmit": true,
     "resolveJsonModule": true,
-    "target": "es5"
+    "target": "es2020"
   },
   "include": ["src", "app", "next-env.d.ts"],
   "exclude": ["node_modules"]

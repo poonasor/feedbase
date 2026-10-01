@@ -62,7 +62,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   // Check if the user has any projects
   if (!projects || projects.length === 0) {
-    return redirect(`${DASH_DOMAIN}`);
+    return redirect(DASH_DOMAIN);
   }
 
   // Get the project with the current slug
