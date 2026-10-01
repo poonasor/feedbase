@@ -3,6 +3,18 @@ import { Resend } from 'resend';
 
 export const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+// Sender address for transactional email. Its domain must be verified in the
+// Resend account owning RESEND_API_KEY (https://resend.com/domains). Accepts a
+// bare address or a full "Name <address>" value. Falls back to the deployment's
+// root domain, and finally to the original feedbase.app address.
+const systemFrom = (() => {
+  const configured = process.env.RESEND_FROM_EMAIL;
+  if (configured) return configured.includes('<') ? configured : `Feedbase <${configured}>`;
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+  if (rootDomain) return `Feedbase <system@${rootDomain}>`;
+  return 'Feedbase <system@feedbase.app>';
+})();
+
 export const sendEmail = async ({
   email,
   subject,
@@ -23,7 +35,7 @@ export const sendEmail = async ({
     );
   }
   return resend.emails.send({
-    from: marketing ? 'Christo from Feedbase <christo@feedbase.app>' : 'Feedbase <system@feedbase.app>',
+    from: marketing ? 'Christo from Feedbase <christo@feedbase.app>' : systemFrom,
     to: test ? 'delivered@resend.dev' : email,
     subject,
     react,
@@ -62,7 +74,7 @@ export const sendBatchEmails = async ({
 
   return resend.batch.create(
     emails.map((email) => ({
-      from: marketing ? 'Christo from Feedbase <christo@feedbase.app>' : 'Feedbase <system@feedbase.app>',
+      from: marketing ? 'Christo from Feedbase <christo@feedbase.app>' : systemFrom,
       to: test ? 'delivered@resend.dev' : email,
       subject,
       headers: headers ? headers[emails.indexOf(email)] : undefined,

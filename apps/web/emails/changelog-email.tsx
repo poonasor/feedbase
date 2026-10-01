@@ -123,10 +123,10 @@ export default function ChangelogEmail({ subId, projectSlug, changelog }: Change
 
             <div className='flex w-full flex-row items-center justify-center'>
               <Link
-                href='https://feedbase.app'
+                href={formatRootUrl()}
                 className='flex items-center gap-2 text-sm font-normal text-black/70'>
                 <Img
-                  src='https://feedbase.app/icon-512x512.png'
+                  src={formatRootUrl(undefined, '/icon-512x512.png')}
                   alt='Feedbase'
                   className='h-8 w-8 rounded-md'
                 />
